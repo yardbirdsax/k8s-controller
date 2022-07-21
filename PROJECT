@@ -1,0 +1,11 @@
+domain: feiermanfamily.com
+layout:
+- go.kubebuilder.io/v3
+projectName: controller
+repo: github.com/yardbirdsax/k8s-controller
+resources:
+- controller: true
+  domain: ""
+  kind: Service
+  version: v1
+version: "3"
