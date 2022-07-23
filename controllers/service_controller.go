@@ -62,14 +62,17 @@ func (r *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if annotationValue, annotationFound := service.Annotations[ServiceLookupAnnotationName]; annotationFound && annotationValue == "true" {
 		if value, found := service.Labels[ServiceLabelName]; !found || value != "true" {
+			log.Info("starting reconciliation", "serviceName", service.ObjectMeta.Name)
+			patch := client.MergeFrom(service.DeepCopy())
 			if service.Labels == nil {
 				service.Labels = map[string]string{}
 			}
 			service.Labels[ServiceLabelName] = "true"
-		}
-		if err := r.Update(ctx, &service); err != nil {
-			log.Error(err, "unable to update service")
-			return ctrl.Result{}, err
+			if err := r.Patch(ctx, &service, patch); err != nil {
+				log.Error(err, "unable to patch service")
+				return ctrl.Result{}, err
+			}
+			log.Info("ending reconciliation", "serviceName", service.ObjectMeta.Name)
 		}
 	}
 
