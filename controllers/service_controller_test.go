@@ -101,14 +101,20 @@ var _ = Describe("Service Controller", func() {
 					},
 				},
 			}
-			Eventually(func() bool {
-				err := k8sClient.Create(ctx, service)
-				return err != nil
-			}, timeout, interval).Should(BeTrue())
+			// Setup
+			Eventually(
+				func() bool {
+					err := k8sClient.Create(ctx, service)
+					return err != nil
+				},
+				timeout,
+				interval,
+			).Should(BeTrue())
 			lookupKey := types.NamespacedName{
 				Namespace: namespaceName,
 				Name:      serviceWithoutLabelName,
 			}
+			// Assert
 			createdService := &corev1.Service{}
 			Consistently(func() bool {
 				err := k8sClient.Get(ctx, lookupKey, createdService)
