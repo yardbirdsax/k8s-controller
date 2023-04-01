@@ -146,3 +146,14 @@ start:
 	ctlptl apply -f cluster.yaml
 stop:
 	ctlptl delete -f cluster.yaml
+
+# Helmify stuff
+HELMIFY ?= $(LOCALBIN)/helmify
+
+.PHONY: helmify
+helmify: $(HELMIFY) ## Download helmify locally if necessary.
+$(HELMIFY): $(LOCALBIN)
+	test -s $(LOCALBIN)/helmify -- k8s-controller || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
+
+helm: manifests kustomize helmify
+	$(KUSTOMIZE) build config/default | $(HELMIFY) charts/k8s-controller

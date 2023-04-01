@@ -13,7 +13,7 @@ namePrefix: controller-
 #  someName: someValue
 
 bases:
-- ../crd
+# - ../crd
 - ../rbac
 - ../manager
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
@@ -44,7 +44,7 @@ patchesStrategicMerge:
 #- webhookcainjection_patch.yaml
 
 # the following config is for teaching kustomize how to do var substitution
-vars:
+# vars:
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
 #- name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
 #  objref:
