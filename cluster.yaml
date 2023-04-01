@@ -1,0 +1,15 @@
+apiVersion: ctlptl.dev/v1alpha1
+kind: Registry
+name: programming-k8s-registry
+port: 5005
+---
+apiVersion: ctlptl.dev/v1alpha1
+kind: Cluster
+name: k3d-programming-k8s
+product: k3d
+registry: programming-k8s-registry
+k3d:
+  v1alpha4Simple:
+    metadata:
+      name: programming-k8s
+    image: rancher/k3s:v1.26.3-k3s1

@@ -131,3 +131,18 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+# Local environment setup
+.PHONY: setup
+setup:
+	brew bundle
+	KUBECTL_INSTALLED=$$(asdf plugin list | grep kubectl || true); \
+	if [ -z "$${KUBECTL_INSTALLED}" ]; then \
+		asdf plugin add kubectl; \
+	fi
+	asdf install
+.PHONY: start
+start:
+	ctlptl apply -f cluster.yaml
+stop:
+	ctlptl delete -f cluster.yaml
