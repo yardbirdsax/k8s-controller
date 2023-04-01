@@ -1,6 +1,7 @@
 domain: k8s-controller.feiermanfamily.com
 layout:
 - go.kubebuilder.io/v3
+multigroup: true
 projectName: controller
 repo: github.com/yardbirdsax/k8s-controller
 resources:
