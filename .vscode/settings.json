@@ -1,3 +1,12 @@
 {
   "makefile.extensionOutputFolder": "./.vscode",
+  "gopls": {
+    "build.buildFlags": [
+      "--tags",
+      "e2e"
+    ]
+  },
+  "go.testFlags": [
+    "--tags=e2e"
+  ]
 }

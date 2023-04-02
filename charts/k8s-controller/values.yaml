@@ -22,8 +22,9 @@ controllerManager:
         drop:
         - ALL
     image:
-      repository: controller
+      repository: k8s-controller
       tag: latest
+    imagePullPolicy: IfNotPresent
     resources:
       limits:
         cpu: 500m

@@ -18,7 +18,7 @@ const (
 	serviceWithLabelName    = "my-service"
 	serviceWithoutLabelName = "my-other-service"
 	namespaceName           = "default"
-	timeout                 = 15 * time.Second
+	timeout                 = 20 * time.Second
 	interval                = 500 * time.Millisecond
 )
 

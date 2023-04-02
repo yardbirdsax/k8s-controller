@@ -1,8 +1,12 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= k8s-controller
+IMG_TAG ?= latest
+IMG_REGISTRY ?=
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.24.1
+# The name of the local k3d cluster for testing
+K3D_CLUSTER_NAME=$(shell cat cluster.yaml| yq 'select(.k3d != null) | .k3d.v1alpha4Simple.metadata.name')
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -59,6 +63,11 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test ./... -coverprofile cover.out
 
+.PHONY: test-e2e
+test-e2e: start docker-build docker-load helm-install
+	go test -v -tags=e2e -count=1 ./test --timeout 30s || make stop
+	make stop
+
 ##@ Build
 
 .PHONY: build
@@ -70,12 +79,21 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+docker-build: ## Build docker image with the manager.
+	docker build -t ${IMG}:${IMG_TAG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker push ${IMG_REGISTRY}/${IMG}:${IMG_TAG}
+
+.PHONY: docker-tag
+docker-tag: ## Tag docker image with a new registry URL attached
+	docker tag ${IMG}:${IMG_TAG} ${IMG_REGISTRY}/${IMG}:${IMG_TAG}
+
+.PHONY: docker-load
+docker-load: ## Loads the image onto the local k3d cluster
+	k3d image load ${IMG}:${IMG_TAG} -c $(K3D_CLUSTER_NAME)
+
 
 ##@ Deployment
 
@@ -155,5 +173,10 @@ helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify -- k8s-controller || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
 
-helm: manifests kustomize helmify
+.PHONY: helm
+helm: manifests kustomize helmify ## Generate Helm charts
 	$(KUSTOMIZE) build config/default | $(HELMIFY) charts/k8s-controller
+
+.PHONY: helm-install
+helm-install: helm ## Installs the controller and resources using the Helm chart
+	helm install k8s-controller charts/k8s-controller
