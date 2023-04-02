@@ -1,85 +1,58 @@
 # controller
-This is a simple Kubernetes controller implementation for the purposes of learning how developing controllers and CRDs works.
+This repository contains a simple Kubernetes controller implementation to learn how developing controllers and CRDs works.
+
+## Tenets
+
+* Build controllers using the pattern described by [the Kubebuilder
+  book](https://book.kubebuilder.io/) and the accompanying framework.
+* Generate Helm charts from the manifests created by Kubebuilder using
+  [`helmify`](github.com/arttor/helmify/cmd/helmify).
+* Write end-to-end tests that deploy to a real Kubernetes cluster, similar to what [this
+  talk](https://www.youtube.com/watch?v=T4EB0KB1-fc) by Christie Wilson describes.
+* Simplify the local development environment setup, including a fully functional Kubernetes cluster
+  (used for the aforementioned end-to-end testing) using `ctlptl` by [tilt.dev](https://tilt.dev)
+  and [`k3d`](https://github.com/rancher/k3d) for creating a cluster in Docker.
+
 ## Description
 
-Right now there are the following controllers.
+Right now, there are the following controllers.
 
 ### Service Controller
 
-This watches for services that have the annotation `feiermanfamily.com/labelService: true`, and then attaches a label of `controllerTagged: true` to them. The 
-idea was to learn how to watch for and modify objects that aren't custom, or even created by the controller itself.
+This controller watches for services with the annotation `feiermanfamily.com/labelService: true` and
+then attaches a label of `controllerTagged: true` to them. The idea was to learn how to watch for
+and modify objects that aren't custom or created by the controller.
 
 ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
-### Running on the cluster
-1. Install Instances of Custom Resources:
+To install tools required for local development, run `make setup`. (Sorry to those of you who are
+not using Macs.)
 
-```sh
-kubectl apply -f config/samples/
-```
+## Running End-To-End Tests
 
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-push IMG=<some-registry>/controller:tag
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
+Run `make test-e2e` to provision a local `k3d` cluster, install the controllers via Helm, and run an
+end-to-end test.
+
+## Modifying the API definitions
+If you are editing the API definitions, generate the manifests and Helm charts such as CRs or CRDs using:
 
 ```sh
-make deploy IMG=<some-registry>/controller:tag
+make helm
 ```
 
-### Uninstall CRDs
-To delete the CRDs from the cluster:
+## Building and pushing Docker images
 
-```sh
-make uninstall
-```
+To build and push Docker images for the controller manager, use the `make docker-build` and `make
+docker-push` commands. You can optionally specify a different image name using the `IMG` argument
+like this: `make docker-build IMG=ghcr.io/yardbirdsax/k8s-controller/controller`.
 
-### Undeploy controller
-UnDeploy the controller to the cluster:
+## Deploying the controller
 
-```sh
-make undeploy
-```
+You can deploy the controller using the `make deploy` command, and uninstall it using the `make
+undeploy` command. If you previously specified a different image name using the `IMG` argument make
+sure you do the same here. The `helm` tool deploys the controller using the generated chart.
 
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-### How it works
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
-
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
-
-### Test It Out
-1. Install the CRDs into the cluster:
-
-```sh
-make install
-```
-
-2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
-
-```sh
-make run
-```
-
-**NOTE:** You can also run this in one step by running: `make install run`
-
-### Modifying the API definitions
-If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
-
-```sh
-make manifests
-```
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+**NOTE:** Run `make help` for more information on all potential `make` targets
 
 ## License
 
