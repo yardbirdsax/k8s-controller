@@ -8,4 +8,13 @@ resources:
 - controller: true
   kind: Service
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: k8s-controller.feiermanfamily.com
+  group: deployments
+  kind: WebAPI
+  path: github.com/yardbirdsax/k8s-controller/apis/deployments/v1alpha1
+  version: v1alpha1
 version: "3"

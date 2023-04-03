@@ -31,7 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	deploymentsv1alpha1 "github.com/yardbirdsax/k8s-controller/apis/deployments/v1alpha1"
 	"github.com/yardbirdsax/k8s-controller/controllers"
+	deploymentscontrollers "github.com/yardbirdsax/k8s-controller/controllers/deployments"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -43,6 +45,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(deploymentsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -92,6 +95,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Service")
+		os.Exit(1)
+	}
+	if err = (&deploymentscontrollers.WebAPIReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "WebAPI")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

@@ -1,0 +1,6 @@
+apiVersion: deployments.k8s-controller.feiermanfamily.com/v1alpha1
+kind: WebAPI
+metadata:
+  name: webapi-sample
+spec:
+  # TODO(user): Add fields here

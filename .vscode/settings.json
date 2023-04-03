@@ -8,5 +8,6 @@
   },
   "go.testFlags": [
     "--tags=e2e"
-  ]
+  ],
+  "go.lintOnSave": "package",
 }

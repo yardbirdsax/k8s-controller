@@ -66,11 +66,20 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test ./... -coverprofile cover.out
+	make start
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" \
+	KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true \
+	USE_EXISTING_CLUSTER=true go test ./... -coverprofile cover.out -test.gocoverdir "$$PWD/coverage/unit"; \
+	make stop
 
 .PHONY: test-e2e
-test-e2e: start docker-build docker-load helm-install
-	go test -v -tags=e2e -count=1 ./test --timeout 30s || make stop
+test-e2e: start docker-build docker-load deploy
+	go test -v -tags=e2e -count=1 ./test --timeout 30s; \
+	if [ $$? -eq 0 ]; then \
+		echo "test succeeded"; \
+	else \
+		echo "test failed!"; \
+	fi;
 	make stop
 
 ##@ Build
@@ -97,7 +106,7 @@ docker-tag: ## Tag docker image with a new registry URL attached
 
 .PHONY: docker-load
 docker-load: ## Loads the image onto the local k3d cluster
-	k3d image load ${IMG}:${IMG_TAG} -c $(K3D_CLUSTER_NAME)
+	$(K3D) image load ${IMG}:${IMG_TAG} -c $(K3D_CLUSTER_NAME)
 
 
 ##@ Deployment
@@ -131,10 +140,15 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
+PATHPLUSLOCALBIN = PATH=$(LOCALBIN):$$PATH
+
 ## Tool Binaries
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+K3D ?= $(LOCALBIN)/k3d
+CTLPTL ?= $(LOCALBIN)/ctlptl
+HELMIFY ?= $(LOCALBIN)/helmify
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -144,6 +158,7 @@ KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/k
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
+	rm $(KUSTOMIZE)
 	curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
 
 .PHONY: controller-gen
@@ -166,15 +181,19 @@ setup:
 	fi
 	asdf install
 .PHONY: start
-start:
-	ctlptl apply -f cluster.yaml
-stop:
-	ctlptl delete -f cluster.yaml
+start: $(CTLPTL)
+	$(PATHPLUSLOCALBIN) $(CTLPTL) apply -f cluster.yaml
+stop: $(CTLPTL)
+	$(CTLPTL) delete -f cluster.yaml
 
 # Helmify stuff
-HELMIFY ?= $(LOCALBIN)/helmify
 
 .PHONY: helmify
 helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify -- k8s-controller || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
+
+.PHONY: ctlptl
+ctlptl: $(CTLPTL) ## Download ctlptl if necessary
+$(CTLPTL): $(LOCALBIN)
+	test -s $(LOCALBIN)/ctlptl || GOBIN=$(LOCALBIN) go install github.com/tilt-dev/ctlptl/cmd/ctlptl@v0.8.18
