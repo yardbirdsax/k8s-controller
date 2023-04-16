@@ -146,7 +146,7 @@ PATHPLUSLOCALBIN = PATH=$(LOCALBIN):$$PATH
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-K3D ?= $(LOCALBIN)/k3d
+K3D ?= k3d
 CTLPTL ?= $(LOCALBIN)/ctlptl
 HELMIFY ?= $(LOCALBIN)/helmify
 
