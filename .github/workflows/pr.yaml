@@ -20,6 +20,14 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Cache Homebrew installation
+        uses: actions/cache@v3
+        with:
+          path: |
+            /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Brewfile.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-
       - name: Install Homebrew and install packages
         shell: bash
         run: |
@@ -41,6 +49,14 @@ jobs:
           with:
             go-version-file: go.mod
             cache: true
+        - name: Cache Homebrew installation
+          uses: actions/cache@v3
+          with:
+            path: |
+              /home/linuxbrew/.linuxbrew
+            key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Brewfile.lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-${{ runner.arch }}-
         - name: Install Homebrew and install packages
           shell: bash
           run: |
