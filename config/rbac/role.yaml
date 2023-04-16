@@ -31,3 +31,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - deployments.k8s-controller.feiermanfamily.com
+  resources:
+  - webapis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - deployments.k8s-controller.feiermanfamily.com
+  resources:
+  - webapis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - deployments.k8s-controller.feiermanfamily.com
+  resources:
+  - webapis/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -5,7 +5,7 @@ import (
 	//"reflect"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/yardbirdsax/k8s-controller/controllers"
 	corev1 "k8s.io/api/core/v1"

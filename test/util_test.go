@@ -13,12 +13,13 @@ import (
 	"strings"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type testFlags struct {
@@ -55,13 +56,11 @@ func initFlags() *testFlags {
 	return &f
 }
 
-type schemeAdder interface {
-	AddToScheme(scheme *runtime.Scheme)
-}
+type schemeAdder func(*runtime.Scheme) error
 
-func newClients(clientApi schemeAdder) (*kubernetes.Clientset, client.Client, error) {
-	if clientApi != nil {
-		clientApi.AddToScheme(scheme.Scheme)
+func newClients(schemeAdder schemeAdder) (*kubernetes.Clientset, client.Client, error) {
+	if schemeAdder != nil {
+		schemeAdder(scheme.Scheme)
 	}
 
 	overrides := clientcmd.ConfigOverrides{}
@@ -82,12 +81,9 @@ func newClients(clientApi schemeAdder) (*kubernetes.Clientset, client.Client, er
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating clientset from client config (%+v): %w", *clientConfig, err)
 	}
-	mgr, err := manager.New(clientConfig, manager.Options{})
-	if err != nil {
-		return nil, nil, fmt.Errorf("error creating manager client from client config (%+v): %w", *clientConfig, err)
-	}
+	client, err := client.New(clientConfig, client.Options{})
 
-	return clientset, mgr.GetClient(), nil
+	return clientset, client, nil
 }
 
 func getRandomNamespace(prefix string) string {
@@ -98,4 +94,13 @@ func getRandomNamespace(prefix string) string {
 		suffix = append(suffix, fmt.Sprintf("%c", rand.Intn(122-97)+97))
 	}
 	return strings.Join([]string{prefix, strings.Join(suffix, "")}, "-")
+}
+
+func createNamespace(name string, client client.Client) error {
+	namespace := &corev1.Namespace{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+	}
+	return client.Create(ctx, namespace)
 }

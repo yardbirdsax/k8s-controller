@@ -16,7 +16,8 @@ import (
 )
 
 func TestServiceController(t *testing.T) {
-	clientset, _, err := newClients(nil)
+	t.Parallel()
+	clientset, client, err := newClients(nil)
 	if err != nil {
 		t.Fatalf("error generating client sets: %v", err)
 	}
@@ -46,11 +47,7 @@ func TestServiceController(t *testing.T) {
 		},
 	}
 
-	if _, err := clientset.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
-		ObjectMeta: v1.ObjectMeta{
-			Name: namespaceName,
-		},
-	}, v1.CreateOptions{}); err != nil {
+	if err := createNamespace(namespaceName, client); err != nil {
 		t.Fatalf("error creating test namespace %q: %v", namespaceName, err)
 	}
 
