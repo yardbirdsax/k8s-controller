@@ -26,4 +26,5 @@ testbin/*
 
 *.log
 
-coverage/**
+coverage/unit/*
+!.gitinclude
